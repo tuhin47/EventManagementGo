@@ -59,6 +59,29 @@ curl -X GET http://localhost:8080/event/<event_id> \
 **Notes:**
 - Replace `<event_id>` with the actual ID of the event you want to retrieve.
 
+### 5. Update Event Endpoint
+
+**Description:** Updates an existing event by its ID.
+
+**Request:**
+```bash
+curl -X PUT http://localhost:8080/event/<event_id> \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "Updated Event Name", 
+           "description": "Updated Event Description", 
+           "location": "Updated Event Location", 
+           "start_time": "2025-05-11T10:00:00Z", 
+           "end_time": "2025-05-11T12:00:00Z", 
+           "organizer": "Updated Organizer Name", 
+           "capacity": 150
+         }'
+```
+
+**Notes:**
+- Replace `<event_id>` with the actual ID of the event you want to update.
+- Replace `Updated Event Name`, `2025-05-11`, and `Updated Event Location` with actual updated event details.
+
 ## Notes
 - Replace `Event Name`, `2025-05-10`, and `Event Location` with actual event details in the `/create` endpoint.
 - Ensure the server is running before making requests.

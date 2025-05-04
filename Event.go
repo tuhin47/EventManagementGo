@@ -163,3 +163,67 @@ func getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Fetched event with ID: %s", id)
 }
+
+func updateEventHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := r.URL.Path[len("/event/"):] // Extract the event ID from the URL
+	if id == "" {
+		http.Error(w, "Missing event ID", http.StatusBadRequest)
+		return
+	}
+
+	var updates map[string]interface{}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+		return
+	}
+	log.Printf("Raw request body: %s", string(body))
+
+	if err := json.Unmarshal(body, &updates); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		log.Printf("Error decoding JSON: %v", err)
+		return
+	}
+
+	if len(updates) == 0 {
+		http.Error(w, "No fields to update", http.StatusBadRequest)
+		return
+	}
+
+	query := "UPDATE events SET "
+	args := []interface{}{}
+	for field, value := range updates {
+		query += field + " = ?, "
+		args = append(args, value)
+	}
+	query = query[:len(query)-2] // Remove the trailing comma and space
+	query += " WHERE id = ?"
+	args = append(args, id)
+
+	_, err = db.Exec(query, args...)
+	if err != nil {
+		log.Printf("Error executing query: %v", err)
+		http.Error(w, "Failed to update event", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"message": "Event updated successfully!",
+		"id":      id,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		log.Printf("Error encoding response to JSON: %v", err)
+		return
+	}
+
+	log.Printf("Event updated successfully with ID: %s", id)
+}
