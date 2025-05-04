@@ -1,8 +1,8 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -45,15 +45,33 @@ func createEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := `INSERT INTO events (name, description, location, start_time, end_time, organizer, capacity) VALUES (?, ?, ?, ?, ?, ?, ?)`
-	_, err = db.Exec(query, event.Name, event.Description, event.Location, event.StartTime, event.EndTime, event.Organizer, event.Capacity)
+	result, err := db.Exec(query, event.Name, event.Description, event.Location, event.StartTime, event.EndTime, event.Organizer, event.Capacity)
 	if err != nil {
 		log.Printf("Error executing query: %v", err)
 		http.Error(w, "Failed to create event", http.StatusInternalServerError)
 		return
 	}
 
-	log.Println("Event created successfully!")
-	fmt.Fprintf(w, "Event created successfully!")
+	id, err := result.LastInsertId()
+	if err != nil {
+		log.Printf("Error fetching last insert ID: %v", err)
+		http.Error(w, "Failed to retrieve event ID", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"message": "Event created successfully!",
+		"id":      id,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		log.Printf("Error encoding response to JSON: %v", err)
+		return
+	}
+
+	log.Printf("Event created successfully with ID: %d", id)
 }
 
 func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,4 +111,40 @@ func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("Fetched list of all events")
+}
+
+func getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Extract the event ID from the URL path
+	id := r.URL.Path[len("/event/"):] // Assumes the path is /event/{id}
+	if id == "" {
+		http.Error(w, "Missing event ID", http.StatusBadRequest)
+		return
+	}
+
+	var event Event
+	query := `SELECT id, name, description, location, start_time, end_time, organizer, capacity, created_at, updated_at FROM events WHERE id = ?`
+	err := db.QueryRow(query, id).Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.StartTime, &event.EndTime, &event.Organizer, &event.Capacity, &event.CreatedAt, &event.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Event not found", http.StatusNotFound)
+		} else {
+			log.Printf("Error querying database: %v", err)
+			http.Error(w, "Failed to fetch event", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(event); err != nil {
+		http.Error(w, "Failed to encode event", http.StatusInternalServerError)
+		log.Printf("Error encoding event to JSON: %v", err)
+		return
+	}
+
+	log.Printf("Fetched event with ID: %s", id)
 }

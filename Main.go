@@ -13,14 +13,14 @@ var db *sql.DB
 
 func init() {
 	var err error
-	// Updated DSN to include parseTime and loc parameters
+	log.Printf("Initializing database connection")
 	dsn := "root:root@tcp(127.0.0.1:3306)/event_management?parseTime=true&loc=Local"
 	db, err = sql.Open("mysql", dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// Create events table if it doesn't exist
+	log.Printf("Creating events table if it doesn't exist")
 	createTableQuery := `CREATE TABLE IF NOT EXISTS events (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		name VARCHAR(255) NOT NULL,
@@ -45,10 +45,12 @@ func main() {
 	})
 
 	// Registering handlers
+	log.Printf("Registering HTTP handlers")
 	http.HandleFunc("/create", createEventHandler)
 	http.HandleFunc("/events", getAllEventsHandler)
+	http.HandleFunc("/event/", getEventByIDHandler) // Updated to use path variable
 
 	// Starting the server
-	log.Println("Server is running on http://localhost:8080")
+	log.Printf("Starting the server on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

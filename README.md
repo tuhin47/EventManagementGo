@@ -46,6 +46,19 @@ curl -X GET http://localhost:8080/events \
      -H "Content-Type: application/json"
 ```
 
+### 4. Get Event by ID Endpoint
+
+**Description:** Retrieves a specific event by its ID.
+
+**Request:**
+```bash
+curl -X GET http://localhost:8080/event/<event_id> \
+     -H "Content-Type: application/json"
+```
+
+**Notes:**
+- Replace `<event_id>` with the actual ID of the event you want to retrieve.
+
 ## Notes
 - Replace `Event Name`, `2025-05-10`, and `Event Location` with actual event details in the `/create` endpoint.
 - Ensure the server is running before making requests.
