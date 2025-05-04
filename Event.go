@@ -1,26 +1,38 @@
 package main
 
 import (
+	"EventManagement/config"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
+var validate *validator.Validate
+var db *sql.DB
+
+func init() {
+	validate = validator.New()
+	db = config.GetDB()
+}
+
 type Event struct {
-	ID          int       `json:"id"`          // Unique identifier for the event
-	Name        string    `json:"name"`        // Name of the event
-	Description string    `json:"description"` // Description of the event
-	Location    string    `json:"location"`    // Location where the event will take place
-	StartTime   time.Time `json:"start_time"`  // Start time of the event
-	EndTime     time.Time `json:"end_time"`    // End time of the event
-	Organizer   string    `json:"organizer"`   // Name of the organizer
-	Capacity    int       `json:"capacity"`    // Maximum number of attendees
-	Attendees   []string  `json:"attendees"`   // List of attendees
-	CreatedAt   time.Time `json:"created_at"`  // Timestamp when the event was created
-	UpdatedAt   time.Time `json:"updated_at"`  // Timestamp when the event was last updated
+	ID          int       `json:"id"`
+	Name        string    `json:"name" validate:"required,min=5,max=100"`
+	Description string    `json:"description"`
+	Location    string    `json:"location"`
+	StartTime   time.Time `json:"start_time" validate:"required,gt"`
+	EndTime     time.Time `json:"end_time" validate:"required,gtfield=StartTime"`
+	Organizer   string    `json:"organizer"`
+	Capacity    int       `json:"capacity" validate:"required,gt=0"`
+	Attendees   []string  `json:"attendees"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 func createEventHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +42,7 @@ func createEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var event Event
-	// Debugging: Log the raw request body
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
@@ -41,6 +53,11 @@ func createEventHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.Unmarshal(body, &event); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		log.Printf("Error decoding JSON: %v", err)
+		return
+	}
+
+	if err := validate.Struct(event); err != nil {
+		http.Error(w, "Validation failed: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -97,7 +114,6 @@ func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Debugging: Log the scanned values
 		log.Printf("Scanned Event: %+v", event)
 
 		events = append(events, event)
@@ -119,8 +135,7 @@ func getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract the event ID from the URL path
-	id := r.URL.Path[len("/event/"):] // Assumes the path is /event/{id}
+	id := r.URL.Path[len("/event/"):]
 	if id == "" {
 		http.Error(w, "Missing event ID", http.StatusBadRequest)
 		return
@@ -130,7 +145,7 @@ func getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
 	query := `SELECT id, name, description, location, start_time, end_time, organizer, capacity, created_at, updated_at FROM events WHERE id = ?`
 	err := db.QueryRow(query, id).Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.StartTime, &event.EndTime, &event.Organizer, &event.Capacity, &event.CreatedAt, &event.UpdatedAt)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Event not found", http.StatusNotFound)
 		} else {
 			log.Printf("Error querying database: %v", err)
