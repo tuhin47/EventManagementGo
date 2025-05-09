@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+// SetJSONHeader sets the Content-Type header to application/json
+func SetJSONHeader(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func ExtractIDFromURL(r *http.Request, prefix string) (string, error) {
 	id := strings.TrimPrefix(r.URL.Path, prefix)
 	if id == "" {

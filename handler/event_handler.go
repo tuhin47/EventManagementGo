@@ -1,7 +1,8 @@
-package main
+package handler
 
 import (
 	"EventManagement/config"
+	"EventManagement/domain"
 	"EventManagement/utils"
 	"database/sql"
 	"encoding/json"
@@ -14,32 +15,18 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var validate *validator.Validate
-var db *sql.DB
+var (
+	db       *sql.DB             = config.GetDB()
+	validate *validator.Validate = validator.New()
+)
 
-func init() {
-	validate = validator.New()
-	db = config.GetDB()
-}
-
-type Event struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title" validate:"required,min=5,max=100"`
-	Description string    `json:"description"`
-	StartTime   time.Time `json:"start_time" validate:"required,gt"`
-	EndTime     time.Time `json:"end_time" validate:"required,gtfield=StartTime"`
-	CreatedBy   string    `json:"created_by"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-}
-
-func createEventHandler(w http.ResponseWriter, r *http.Request) {
+func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var event Event
+	var event domain.Event
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -79,7 +66,6 @@ func createEventHandler(w http.ResponseWriter, r *http.Request) {
 		"id":      id,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		log.Printf("Error encoding response to JSON: %v", err)
@@ -89,7 +75,7 @@ func createEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Event created successfully with ID: %d", id)
 }
 
-func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
+func GetAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -107,9 +93,9 @@ func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var events []Event
+	var events []domain.Event
 	for rows.Next() {
-		var event Event
+		var event domain.Event
 		if err := rows.Scan(&event.ID, &event.Title, &event.Description, &event.StartTime, &event.EndTime, &event.CreatedBy, &event.CreatedAt, &event.UpdatedAt); err != nil {
 			http.Error(w, "Failed to parse events", http.StatusInternalServerError)
 			log.Printf("Error scanning row: %v", err)
@@ -121,7 +107,6 @@ func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 		events = append(events, event)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(events); err != nil {
 		http.Error(w, "Failed to encode events", http.StatusInternalServerError)
 		log.Printf("Error encoding events to JSON: %v", err)
@@ -131,7 +116,7 @@ func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Fetched list of all events with pagination")
 }
 
-func getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
+func GetEventByIDHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -143,7 +128,7 @@ func getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var event Event
+	var event domain.Event
 	query := `SELECT id, title, description, start_time, end_time, created_by, created_at, updated_at FROM events WHERE id = ?`
 	err = db.QueryRow(query, id).Scan(&event.ID, &event.Title, &event.Description, &event.StartTime, &event.EndTime, &event.CreatedBy, &event.CreatedAt, &event.UpdatedAt)
 	if err != nil {
@@ -156,7 +141,6 @@ func getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(event); err != nil {
 		http.Error(w, "Failed to encode event", http.StatusInternalServerError)
 		log.Printf("Error encoding event to JSON: %v", err)
@@ -166,7 +150,7 @@ func getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Fetched event with ID: %s", id)
 }
 
-func updateEventHandler(w http.ResponseWriter, r *http.Request) {
+func UpdateEventHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -223,7 +207,6 @@ func updateEventHandler(w http.ResponseWriter, r *http.Request) {
 		"id":      id,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		log.Printf("Error encoding response to JSON: %v", err)
@@ -233,7 +216,7 @@ func updateEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Event updated successfully with ID: %s", id)
 }
 
-func deleteEventHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteEventHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -270,7 +253,6 @@ func deleteEventHandler(w http.ResponseWriter, r *http.Request) {
 		"id":      id,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		log.Printf("Error encoding response to JSON: %v", err)
