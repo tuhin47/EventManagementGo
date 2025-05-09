@@ -1,87 +1,32 @@
-# Event Management System API
+# Event Management System
 
-This README provides example `curl` requests for interacting with the Event Management System API. You can use these requests in Postman or directly in your terminal.
+## Quick Run (Docker)
 
-## Base URL
-
-The server runs on `http://localhost:8080`.
-
-## Endpoints
-
-### 1. Welcome Endpoint
-
-**Description:** Displays a welcome message.
-
-**Request:**
 ```bash
-curl -X GET http://localhost:8080/
+docker compose --env-file .env -f docker-compose.yml -p eventmanagement up -d --build
 ```
+**Note** : Make sure to update port from `.env` if your local mysql is already running on port `3306`
 
-### 2. Create Event Endpoint
+It will run the postman collection from the `postman_collection` folder. 
 
-**Description:** Creates a new event.
+## API Endpoints
 
-**Request:**
-```bash
-curl -X POST http://localhost:8080/create \
-     -H "Content-Type: application/json" \
-     -d '{
-           "name": "Event Name", 
-           "description": "Event Description", 
-           "location": "Event Location", 
-           "start_time": "2025-05-10T10:00:00Z", 
-           "end_time": "2025-05-10T12:00:00Z", 
-           "organizer": "Organizer Name", 
-           "capacity": 100
-         }'
-```
+The application provides several API endpoints for managing events.
 
-### 3. Get All Events Endpoint
+| Method | Endpoint      | Description                           | Payload                                                                                                                                                                            |
+|--------|---------------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| GET    | `/`           | Checks if the server is running.      | None                                                                                                                                                                               |
+| POST   | `/events`     | Creates a new event.                  | ```json { "title": "Event Title", "description": "Event Description", "start_time": "2025-05-10T10:00:00Z", "end_time": "2025-05-10T12:00:00Z", "created_by": "Creator Name" } ``` |
+| GET    | `/events`     | Retrieves all events.                 | None                                                                                                                                                                               |
+| GET    | `/event/{id}` | Retrieves a specific event by its ID. | None                                                                                                                                                                               |
+| PUT    | `/event/{id}` | Updates an existing event by its ID.  | ```json { "title": "Updated Event Title" } ```                                                                                                                                     |
+| DELETE | `/event/{id}` | Deletes an existing event by its ID.  | None                                                                                                                                                                               |
 
-**Description:** Retrieves all events.
+## Postman 
 
-**Request:**
-```bash
-curl -X GET http://localhost:8080/events \
-     -H "Content-Type: application/json"
-```
+ - [Postman Collection](./postman_collection/GoLangProgram.postman_collection.json)
+ - [Environment File](./postman_collection/GoLangProgram.postman_environment.json)
 
-### 4. Get Event by ID Endpoint
+## Gitpod
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/tuhin47/EventManagementGo)
 
-**Description:** Retrieves a specific event by its ID.
-
-**Request:**
-```bash
-curl -X GET http://localhost:8080/event/<event_id> \
-     -H "Content-Type: application/json"
-```
-
-**Notes:**
-- Replace `<event_id>` with the actual ID of the event you want to retrieve.
-
-### 5. Update Event Endpoint
-
-**Description:** Updates an existing event by its ID.
-
-**Request:**
-```bash
-curl -X PUT http://localhost:8080/event/<event_id> \
-     -H "Content-Type: application/json" \
-     -d '{
-           "name": "Updated Event Name", 
-           "description": "Updated Event Description", 
-           "location": "Updated Event Location", 
-           "start_time": "2025-05-11T10:00:00Z", 
-           "end_time": "2025-05-11T12:00:00Z", 
-           "organizer": "Updated Organizer Name", 
-           "capacity": 150
-         }'
-```
-
-**Notes:**
-- Replace `<event_id>` with the actual ID of the event you want to update.
-- Replace `Updated Event Name`, `2025-05-11`, and `Updated Event Location` with actual updated event details.
-
-## Notes
-- Replace `Event Name`, `2025-05-10`, and `Event Location` with actual event details in the `/create` endpoint.
-- Ensure the server is running before making requests.

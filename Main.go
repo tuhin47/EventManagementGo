@@ -25,6 +25,8 @@ func handleEvent(w http.ResponseWriter, r *http.Request) {
 		getEventByIDHandler(w, r)
 	case http.MethodPut:
 		updateEventHandler(w, r)
+	case http.MethodDelete:
+		deleteEventHandler(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}

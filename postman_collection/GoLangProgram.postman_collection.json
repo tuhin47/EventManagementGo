@@ -1,0 +1,273 @@
+{
+	"info": {
+		"_postman_id": "77c68683-2468-4a68-bc17-4154c74865a5",
+		"name": "GoLangProgram",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17612290"
+	},
+	"item": [
+		{
+			"name": "health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URI}}",
+					"host": [
+						"{{BASE_URI}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "events",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"{{$randomFullName}}'s {{$randomProduct}} Event\",\n    \"description\": \"{{$randomWords}}\",\n    \"start_time\": \"2025-05-10T10:00:00Z\",\n    \"end_time\": \"2025-05-10T12:00:00Z\",\n    \"created_by\": \"{{$randomCompanyName}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URI}}/events",
+					"host": [
+						"{{BASE_URI}}"
+					],
+					"path": [
+						"events"
+					]
+				},
+				"description": "### Create Event\n\nThis endpoint allows the user to create a new event.\n\n#### Location\n\n- The request should be sent to `http://localhost:8080/create` using the HTTP POST method.\n    \n\n#### Request Body\n\n- The request should include the following parameters in the raw request body type:\n    \n    - `name` (string): The name of the event.\n        \n    - `description` (string): The description of the event.\n        \n    - `location` (string): The location of the event.\n        \n    - `start_time` (string): The start time of the event in ISO 8601 format.\n        \n    - `end_time` (string): The end time of the event in ISO 8601 format.\n        \n    - `organizer` (string): The name of the event organizer.\n        \n    - `capacity` (number): The maximum capacity of the event.\n        \n\n#### Response\n\n- Upon successful creation, the endpoint returns a JSON object with the following fields:\n    \n    - `id` (number): The ID of the newly created event.\n        \n    - `message` (string): A message indicating the status of the operation.\n        \n\nExample:\n\n``` json\n{\n  \"id\": 0,\n  \"message\": \"\"\n}\n\n ```"
+			},
+			"response": []
+		},
+		{
+			"name": "events",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"const randomEvent = response[Math.floor(Math.random() * response.length)];",
+							"pm.collectionVariables.set('randomEventId', randomEvent.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URI}}/events",
+					"host": [
+						"{{BASE_URI}}"
+					],
+					"path": [
+						"events"
+					]
+				},
+				"description": "Generated from cURL: curl -X GET http://localhost:8080/events"
+			},
+			"response": []
+		},
+		{
+			"name": "events/:id",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Updated {{$randomFullName}}'s {{$randomProduct}} Event\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URI}}/event/{{randomEventId}}",
+					"host": [
+						"{{BASE_URI}}"
+					],
+					"path": [
+						"event",
+						"{{randomEventId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "events/:id",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URI}}/event/{{randomEventId}}",
+					"host": [
+						"{{BASE_URI}}"
+					],
+					"path": [
+						"event",
+						"{{randomEventId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eventsDeleted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"pm.collectionVariables.set(\"eventId\", response.id);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"{{$randomFullName}}'s {{$randomProduct}} Event\",\n    \"description\": \"{{$randomWords}}\",\n    \"start_time\": \"2025-05-10T10:00:00Z\",\n    \"end_time\": \"2025-05-10T12:00:00Z\",\n    \"created_by\": \"{{$randomCompanyName}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URI}}/events",
+					"host": [
+						"{{BASE_URI}}"
+					],
+					"path": [
+						"events"
+					]
+				},
+				"description": "### Create Event\n\nThis endpoint allows the user to create a new event.\n\n#### Location\n\n- The request should be sent to `http://localhost:8080/create` using the HTTP POST method.\n    \n\n#### Request Body\n\n- The request should include the following parameters in the raw request body type:\n    \n    - `name` (string): The name of the event.\n        \n    - `description` (string): The description of the event.\n        \n    - `location` (string): The location of the event.\n        \n    - `start_time` (string): The start time of the event in ISO 8601 format.\n        \n    - `end_time` (string): The end time of the event in ISO 8601 format.\n        \n    - `organizer` (string): The name of the event organizer.\n        \n    - `capacity` (number): The maximum capacity of the event.\n        \n\n#### Response\n\n- Upon successful creation, the endpoint returns a JSON object with the following fields:\n    \n    - `id` (number): The ID of the newly created event.\n        \n    - `message` (string): A message indicating the status of the operation.\n        \n\nExample:\n\n``` json\n{\n  \"id\": 0,\n  \"message\": \"\"\n}\n\n ```"
+			},
+			"response": []
+		},
+		{
+			"name": "event/:id",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URI}}/event/{{eventId}}",
+					"host": [
+						"{{BASE_URI}}"
+					],
+					"path": [
+						"event",
+						"{{eventId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"pm.test(\"Status code is successful\", function () {",
+					"    pm.expect(pm.response.code).to.be.above(199).and.below(300);",
+					"});",
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "eventId",
+			"value": ""
+		},
+		{
+			"key": "randomEventId",
+			"value": ""
+		}
+	]
+}

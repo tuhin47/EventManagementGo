@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="EventManagement" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="DB_HOST" value="localhost" />
+      <env name="DB_PASSWORD" value="root" />
+      <env name="DB_PORT" value="3306" />
+      <env name="DB_USERNAME" value="root" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="EventManagement" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/Main.go" />
+    <method v="2" />
+  </configuration>
+</component>
